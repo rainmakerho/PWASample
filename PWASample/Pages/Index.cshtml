@@ -1,0 +1,44 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Login page";
+}
+<form method="post">
+    <div class="form-group">
+        <label asp-for="UserId" class="col-form-label col-md-2"></label>
+        <div class="col-md-10">
+            <input asp-for="UserId" />
+        </div>
+    </div>
+    <div class="form-group col-md-10">
+        <input type="submit"  class="btn btn-primary btn-sm" value="Log in" />
+    </div>
+</form>
+<div>
+    <button id="btnNotify" class="btn btn-outline-primary btn-sm">SEND Local NOTIFICATION</button>
+    <button id="btnPush" class="btn btn-success">ENABLE PUSH NOTIFICATIONS</button>
+    <button id="btnInstall" class="btn btn-success">Install App</button>
+</div>
+
+@section Scripts
+{
+    <script src="~/js/swRegister.js" asp-append-version="true"></script>
+<script>
+    // we save the prompt event in a global variable
+    let installPromptEvent;
+    window.addEventListener('beforeinstallprompt', event => {
+        // we prevent a banner or infobar to appear
+        event.preventDefault();
+        // we save the event for later usage
+        installPromptEvent = event
+    });
+    const installAppButton = document.getElementById("btnInstall");
+    installAppButton.addEventListener('click', event => {
+        if (installPromptEvent) {
+            installPromptEvent.prompt();
+        } else {
+            // Prompt not available: Display fallback instructions
+        }
+    })
+</script>
+}

@@ -1,0 +1,78 @@
+﻿@page
+@model PWASample.Pages.PhotoModel
+@{
+    ViewData["Title"] = "Take a Photo";
+}
+<div class="form-group col-md-12">
+    User:@User.Identity.Name
+</div>
+
+<div>
+    <video id="photoVideo" autoplay></video>
+    <button id='btnOpenCamera'>Open Camera</button>
+    <button id='btnCloseCamera' disabled>Close Camera</button>
+</div>
+
+<div>
+    <canvas id='takePhotoCanvas'></canvas>
+    <button id='btnTakePhoto' disabled>Take Photo</button>
+</div>
+
+@section Scripts
+{
+    <script>
+        let imageCapture;
+        const openCameraButton = document.getElementById('btnOpenCamera');
+        const closeCameraButton = document.getElementById('btnCloseCamera');
+        const takePhotoButton = document.getElementById('btnTakePhoto');
+        const photoVideo = document.getElementById('photoVideo');
+        const OpenCamera = () => {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(mediaStream => {
+                    photoVideo.srcObject = mediaStream;
+                    const track = mediaStream.getVideoTracks()[0];
+                    imageCapture = new ImageCapture(track);
+                }).catch(error => console.log(error));
+        }
+        const CloseCamera = () => {
+            const stream = photoVideo.srcObject;
+            const tracks = stream.getVideoTracks();
+            tracks.forEach(track => {
+                track.stop();
+            });
+            photoVideo.srcObject = null;
+        }
+        const TakePhoto = () => {
+            imageCapture.takePhoto()
+                .then(blob => createImageBitmap(blob))
+                .then(imageBitmap => {
+                    const canvas = document.querySelector('#takePhotoCanvas');
+                    drawCanvas(canvas, imageBitmap);
+                }).catch(error => console.log(error));
+        }
+
+        const drawCanvas = (canvas, img) => {
+            canvas.width = 200;
+            canvas.height = 200;
+            let ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+            let x = (canvas.width - img.width * ratio) / 2;
+            let y = (canvas.height - img.height * ratio) / 2;
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height,
+                x, y, img.width * ratio, img.height * ratio);
+        };
+
+        photoVideo.addEventListener('play', () => {
+            console.log('video play');
+            takePhotoButton.disabled = false;
+            closeCameraButton.disabled = false;
+        });
+        openCameraButton.addEventListener('click', OpenCamera);
+        closeCameraButton.addEventListener('click', (event) => {
+            CloseCamera();
+            takePhotoButton.disabled = true;
+            closeCameraButton.disabled = true;
+        });
+        takePhotoButton.addEventListener('click', TakePhoto);
+    </script>
+}
